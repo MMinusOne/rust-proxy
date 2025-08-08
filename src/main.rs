@@ -266,6 +266,7 @@ async fn handle_options(req: HttpRequest) -> impl Responder {
 
 #[get("/")]
 async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
+    println!("GOT HERE 1");
     // Check and extract valid origin
     let origin = match get_valid_origin(&req) {
         Some(o) => o,
@@ -304,6 +305,7 @@ async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
         },
         None => return HttpResponse::BadRequest().body("Missing URL"),
     };
+    println!("GOT HERE 2");
 
     let target_url_parsed = match Url::parse(&target_url) {
         Ok(u) => u,
@@ -340,6 +342,7 @@ async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
             headers
         }
     });
+    println!("GOT HERE 3");
 
     let mut headers = match headers_future.await {
         Ok(h) => h,
@@ -418,12 +421,14 @@ async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
             response_builder.insert_header((name.clone(), value.clone()));
         }
     }
+    println!("GOT HERE 4");
 
     let stream = resp.bytes_stream().map(|chunk| {
         chunk
             .map(Bytes::from)
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
     });
+    println!("GOT HERE 5");
 
     response_builder.body(actix_web::body::BodyStream::new(stream))
 }
