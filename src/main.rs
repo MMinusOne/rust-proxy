@@ -106,7 +106,7 @@ fn get_valid_origin(req: &HttpRequest) -> Option<String> {
             //     .iter()
             //     .find(|origin| referer_str.starts_with(*origin))
             // {
-                return Some((*allowed).to_string());
+                return Some((referer_str).to_string());
             // }
         }
     }
