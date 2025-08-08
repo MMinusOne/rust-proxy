@@ -100,16 +100,16 @@ fn get_valid_origin(req: &HttpRequest) -> Option<String> {
         }
     }
 
-    if let Some(referer) = req.headers().get(header::REFERER) {
-        if let Ok(referer_str) = referer.to_str() {
-            if let Some(allowed) = ALLOWED_ORIGINS
-                .iter()
-                .find(|origin| referer_str.starts_with(*origin))
-            {
-                return Some((*allowed).to_string());
-            }
-        }
-    }
+    // if let Some(referer) = req.headers().get(header::REFERER) {
+    //     if let Ok(referer_str) = referer.to_str() {
+    //         if let Some(allowed) = ALLOWED_ORIGINS
+    //             .iter()
+    //             .find(|origin| referer_str.starts_with(*origin))
+    //         {
+    //             return Some((*allowed).to_string());
+    //         }
+    //     }
+    // }
 
     None
 }
