@@ -91,6 +91,8 @@ fn get_valid_origin(req: &HttpRequest) -> Option<String> {
     if !*ENABLE_CORS {
         return Some("*".to_string());
     }
+        return Some("*".to_string());
+
 
     if let Some(origin) = req.headers().get(header::ORIGIN) {
         if let Ok(origin_str) = origin.to_str() {
@@ -250,10 +252,12 @@ fn process_m3u8_line(
 
 // Handle CORS preflight requests
 async fn handle_options(req: HttpRequest) -> impl Responder {
+    println!("GOT HERE 7");
     let origin = match get_valid_origin(&req) {
         Some(o) => o,
         None => return HttpResponse::Forbidden().body("Access denied: Origin not allowed"),
     };
+    println!("GOT HERE 8");
 
     HttpResponse::Ok()
         .insert_header((header::ACCESS_CONTROL_ALLOW_ORIGIN, origin))
@@ -348,16 +352,19 @@ async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
         Ok(h) => h,
         Err(_) => return HttpResponse::InternalServerError().body("Header processing failed"),
     };
+    println!("GOT HERE 3.1");
 
     if let Some(range) = req.headers().get("Range") {
         headers.insert("Range", range.clone());
     }
+    println!("GOT HERE 3.2");
 
     // Fetch target
     let resp = match CLIENT.get(&target_url).headers(headers).send().await {
         Ok(r) => r,
         Err(_) => return HttpResponse::InternalServerError().body("Failed to fetch target URL"),
     };
+    println!("GOT HERE 3.3");
 
     let status = resp.status();
     let headers_copy = resp.headers().clone();
@@ -372,23 +379,28 @@ async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
         || content_type.contains("application/vnd.apple.mpegurl")
         || content_type.contains("application/x-mpegurl");
 
+    println!("GOT HERE 3.4");
 
     if is_m3u8 {
         let m3u8_text = match resp.text().await {
             Ok(t) => t,
             Err(_) => return HttpResponse::InternalServerError().body("Failed to read m3u8"),
         };
+    println!("GOT HERE 3.5");
 
         let scrape_url = Url::parse(&target_url).unwrap();
         let headers_param = query.get("headers").cloned();
+    println!("GOT HERE 3.6");
 
         // Process m3u8 sequentially
         let lines = m3u8_text.lines();
         let mut processed_lines = Vec::with_capacity(lines.size_hint().0);
+    println!("GOT HERE 3.7");
         
         for line in lines {
             processed_lines.push(process_m3u8_line(line, &scrape_url, &headers_param));
         }
+    println!("GOT HERE 3.8");
 
         return HttpResponse::Ok()
             .insert_header((header::ACCESS_CONTROL_ALLOW_ORIGIN, origin))
@@ -398,17 +410,22 @@ async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
             .content_type("application/vnd.apple.mpegurl")
             .body(processed_lines.join("\n"));
     }
+    println!("GOT HERE 3.9");
 
     let mut response_builder = HttpResponse::build(status);
+    println!("GOT HERE 3.10");
     
     // Set CORS headers for all responses
     response_builder.insert_header((header::ACCESS_CONTROL_ALLOW_ORIGIN, origin.clone()));
     response_builder.insert_header((header::ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, OPTIONS"));
     response_builder.insert_header((header::ACCESS_CONTROL_ALLOW_HEADERS, "Content-Type, Authorization, Range"));
     response_builder.insert_header((header::ACCESS_CONTROL_EXPOSE_HEADERS, "Content-Length, Content-Range, Accept-Ranges"));
+    println!("GOT HERE 3.11");
     
     // Copy important headers from the original response
     for (name, value) in headers_copy.iter() {
+    println!("GOT HERE 3.12");
+
         let header_name = name.as_str().to_lowercase();
         if header_name == "content-type" 
             || header_name == "content-length" 
@@ -420,6 +437,8 @@ async fn m3u8_proxy(req: HttpRequest) -> impl Responder {
             || header_name == "etag" {
             response_builder.insert_header((name.clone(), value.clone()));
         }
+    println!("GOT HERE 3.13");
+
     }
     println!("GOT HERE 4");
 
