@@ -94,22 +94,22 @@ fn get_valid_origin(req: &HttpRequest) -> Option<String> {
 
     if let Some(origin) = req.headers().get(header::ORIGIN) {
         if let Ok(origin_str) = origin.to_str() {
-            if ALLOWED_ORIGINS.contains(&origin_str) {
+            // if ALLOWED_ORIGINS.contains(&origin_str) {
                 return Some(origin_str.to_string());
-            }
+            // }
         }
     }
 
-    // if let Some(referer) = req.headers().get(header::REFERER) {
-    //     if let Ok(referer_str) = referer.to_str() {
-    //         if let Some(allowed) = ALLOWED_ORIGINS
-    //             .iter()
-    //             .find(|origin| referer_str.starts_with(*origin))
-    //         {
-    //             return Some((*allowed).to_string());
-    //         }
-    //     }
-    // }
+    if let Some(referer) = req.headers().get(header::REFERER) {
+        if let Ok(referer_str) = referer.to_str() {
+            // if let Some(allowed) = ALLOWED_ORIGINS
+            //     .iter()
+            //     .find(|origin| referer_str.starts_with(*origin))
+            // {
+                return Some((*allowed).to_string());
+            // }
+        }
+    }
 
     None
 }
